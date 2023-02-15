@@ -14,8 +14,11 @@ export function eval_program(program: Program, env: Environment): RuntimeVal {
 }
 
 export function eval_var_declaration(
-	arg0: VarDeclaration,
+	declaration: VarDeclaration,
 	env: Environment
 ): RuntimeVal {
-	throw new Error("Function not implemented.");
+	const value = declaration.value
+		? evaluate(declaration.value, env)
+		: MK_NULL();
+	return env.declareVar(declaration.identifier, value, declaration.constant);
 }
