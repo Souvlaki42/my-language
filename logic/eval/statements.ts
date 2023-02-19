@@ -1,4 +1,8 @@
-import { FunctionDeclaration, Program, VarDeclaration } from "../../frontend/ast.ts";
+import {
+	FunctionDeclaration,
+	Program,
+	VarDeclaration,
+} from "../../core/ast.ts";
 import Environment from "../environment.ts";
 import { evaluate } from "../interpeter.ts";
 import { RuntimeVal, MK_NULL, FunctionValue } from "../values.ts";
@@ -37,4 +41,3 @@ export function eval_function_declaration(
 
 	return env.declareVar(declaration.name, fn, true);
 }
-
