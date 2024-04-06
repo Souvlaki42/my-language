@@ -1,4 +1,4 @@
-# my-language
+# My language
 
 My own programming language made using Bun and TS
 This project is based on [this series](https://youtube.com/playlist?list=PL_2VhOvlMk4UHGqYCLWc6GO8FaPl8fQTh&si=sHAtvSekEWxE8PfC)
