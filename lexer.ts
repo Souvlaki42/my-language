@@ -21,6 +21,7 @@ export const TokenType: UnionToObject<
 	CloseParen: "CloseParen",
 	BinaryOparator: "BinaryOparator",
 	DoubleQuote: "DoubleQuote",
+	// Maybe add single quotes later.
 	SingleQuote: "SingleQuote",
 	Let: "Let",
 	String: "String",
@@ -61,49 +62,45 @@ export const tokenize = (sourceCode: string): Token[] => {
 	const tokens = new Array<Token>();
 	const src = sourceCode.split("");
 
-	// Set opening values
-	let openDoubleQuotes = false;
-	let insideComment = false;
-	let stringContents = "";
-	let commentContents = "";
-	let numberContents = "";
-	let identifierContents = "";
+	const char = (): string => src[0];
 
-	// Build each token until end of file
-	src.forEach((char, _index) => {
-		if (char === '"') {
-			tokens.push(token(char, "DoubleQuote"));
-			openDoubleQuotes = !openDoubleQuotes;
-		} else if (openDoubleQuotes) stringContents += char;
-		else if (insideComment && char !== "\n") commentContents += char;
-		else if (char === "#") insideComment = true;
-		else if (insideComment) {
-			insideComment = false;
-			if (!!commentContents) tokens.push(token(commentContents, "Comment"));
-			commentContents = "";
-		} else if (!!stringContents) {
-			tokens.push(token(stringContents, "String"));
-			stringContents = "";
-		} else if (char === "(") tokens.push(token(char, "OpenParen"));
-		else if (char === ")") tokens.push(token(char, "CloseParen"));
-		else if (char === "=") tokens.push(token(char, "Equals"));
-		else if (isBinaryOperator(char)) tokens.push(token(char, "BinaryOparator"));
-		else if (isInt(char)) numberContents += char;
-		else if (isAlpha(char)) identifierContents += char;
-		else if (!!numberContents) {
-			tokens.push(token(numberContents, "Number"));
-			numberContents = "";
-		} else if (!!identifierContents) {
-			const reserved = Keywords[identifierContents as keyof typeof Keywords];
-			if (!!reserved) tokens.push(token(identifierContents, reserved));
-			else tokens.push(token(identifierContents, "Identifier"));
-			identifierContents = "";
-		} else if (isSkippable(char)) return;
+	const next = (): string | undefined => src.shift();
+
+	const pushToken = (value: Token["value"] = "", type: Token["type"]): void => {
+		if (!!value) tokens.push(token(value, type));
+	};
+
+	while (src.length > 0) {
+		if (char() === '"') {
+			pushToken(next(), "DoubleQuote");
+			let content = "";
+			while (src.length > 0 && char() !== '"') content += next();
+			pushToken(content, "String");
+		} else if (char() === "#") {
+			next();
+			let content = "";
+			while (src.length > 0 && char() !== "\n") content += next();
+			pushToken(content, "Comment");
+		} else if (char() === "(") pushToken(next(), "OpenParen");
+		else if (char() === ")") pushToken(next(), "CloseParen");
+		else if (isBinaryOperator(char())) pushToken(next(), "BinaryOparator");
+		else if (char() === "=") pushToken(next(), "Equals");
+		else if (isInt(char())) {
+			let num = "";
+			while (src.length > 0 && isInt(char())) num += next();
+			pushToken(num, "Number");
+		} else if (isAlpha(char())) {
+			let ident = "";
+			while (src.length > 0 && isAlpha(char())) ident += next();
+			const reserved = Keywords[ident as Lowercase<keyof typeof TokenType>];
+			if (reserved) pushToken(ident, reserved);
+			else pushToken(ident, "Identifier");
+		} else if (isSkippable(char())) next();
 		else {
-			console.error(`Unrecognized character found in source: ${char}`);
+			console.error(`Unrecognized character found in source: ${char()}`);
 			process.exit(1);
 		}
-	});
+	}
 
 	return tokens;
 };
