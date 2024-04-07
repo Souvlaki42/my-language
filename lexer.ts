@@ -1,14 +1,11 @@
-import {
-	type UnionToObject,
-	type ObjectToUnion,
-	countOccurencies,
-} from "./utils";
+import { type UnionToObject, type ObjectToUnion } from "./utils";
 
 export const TokenType: UnionToObject<
 	| "Number"
 	| "String"
 	| "Identifier"
 	| "Equals"
+	| "Comment"
 	| "OpenParen"
 	| "CloseParen"
 	| "BinaryOparator"
@@ -19,6 +16,7 @@ export const TokenType: UnionToObject<
 	Number: "Number",
 	Identifier: "Identifier",
 	Equals: "Equals",
+	Comment: "Comment",
 	OpenParen: "OpenParen",
 	CloseParen: "CloseParen",
 	BinaryOparator: "BinaryOparator",
@@ -52,68 +50,60 @@ const isInt = (str: string): boolean => {
 };
 
 const isSkippable = (str: string): boolean => {
-	return str === " " || str === "#" || str === "\n" || str === "\t";
+	return [" ", "\n", "\t"].includes(str);
+};
+
+const isBinaryOperator = (str: string): boolean => {
+	return ["+", "-", "*", "/", "//", "%"].includes(str);
 };
 
 export const tokenize = (sourceCode: string): Token[] => {
 	const tokens = new Array<Token>();
 	const src = sourceCode.split("");
 
-	// Set quotes open for string
+	// Set opening values
 	let openDoubleQuotes = false;
-	let openSingleQuotes = false;
+	let insideComment = false;
+	let stringContents = "";
+	let commentContents = "";
+	let numberContents = "";
+	let identifierContents = "";
 
 	// Build each token until end of file
-	while (src.length > 0) {
-		if (src[0] === "(") tokens.push(token(src.shift(), "OpenParen"));
-		else if (src[0] === '"') {
-			tokens.push(token(src.shift(), "DoubleQuote"));
+	src.forEach((char, _index) => {
+		if (char === '"') {
+			tokens.push(token(char, "DoubleQuote"));
 			openDoubleQuotes = !openDoubleQuotes;
-		} else if (src[0] === "'") {
-			tokens.push(token(src.shift(), "SingleQuote"));
-			openSingleQuotes = !openSingleQuotes;
-		} else if (src[0] === ")") tokens.push(token(src.shift(), "CloseParen"));
-		else if (
-			src[0] === "+" ||
-			src[0] === "-" ||
-			src[0] === "*" ||
-			src[0] === "/"
-		)
-			tokens.push(token(src.shift(), "BinaryOparator"));
-		else if (src[0] === "=") tokens.push(token(src.shift(), "Equals"));
-		// Handle multicharacter tokens
-		// Build number token
-		else if (isInt(src[0])) {
-			let num = "";
-			while (src.length > 0 && isInt(src[0])) {
-				num += src.shift();
-			}
-			tokens.push(token(num, "Number"));
-		} else if (src[0] === "#") {
-			// Handle comments
-		} else if (isAlpha(src[0])) {
-			// Build alpha token
-			let ident = "";
-			while (src.length > 0 && isAlpha(src[0])) {
-				ident += src.shift();
-			}
-
-			const reserved = Keywords[ident as Lowercase<keyof typeof TokenType>];
-			if (openDoubleQuotes) {
-				tokens.push(token(ident, "String"));
-				openDoubleQuotes = false;
-			} else if (openSingleQuotes) {
-				tokens.push(token(ident, "String"));
-				openDoubleQuotes = false;
-			} else if (!reserved) tokens.push(token(ident, "Identifier"));
-			else if (reserved) tokens.push(token(ident, reserved));
-			// Build skippable token
-		} else if (isSkippable(src[0])) src.shift(); // Skip current token
+		} else if (openDoubleQuotes) stringContents += char;
+		else if (insideComment && char !== "\n") commentContents += char;
+		else if (char === "#") insideComment = true;
+		else if (insideComment) {
+			insideComment = false;
+			if (!!commentContents) tokens.push(token(commentContents, "Comment"));
+			commentContents = "";
+		} else if (!!stringContents) {
+			tokens.push(token(stringContents, "String"));
+			stringContents = "";
+		} else if (char === "(") tokens.push(token(char, "OpenParen"));
+		else if (char === ")") tokens.push(token(char, "CloseParen"));
+		else if (char === "=") tokens.push(token(char, "Equals"));
+		else if (isBinaryOperator(char)) tokens.push(token(char, "BinaryOparator"));
+		else if (isInt(char)) numberContents += char;
+		else if (isAlpha(char)) identifierContents += char;
+		else if (!!numberContents) {
+			tokens.push(token(numberContents, "Number"));
+			numberContents = "";
+		} else if (!!identifierContents) {
+			const reserved = Keywords[identifierContents as keyof typeof Keywords];
+			if (!!reserved) tokens.push(token(identifierContents, reserved));
+			else tokens.push(token(identifierContents, "Identifier"));
+			identifierContents = "";
+		} else if (isSkippable(char)) return;
 		else {
-			console.error(`Unrecognized character found in source: ${src[0]}`);
+			console.error(`Unrecognized character found in source: ${char}`);
 			process.exit(1);
 		}
-	}
+	});
 
 	return tokens;
 };
