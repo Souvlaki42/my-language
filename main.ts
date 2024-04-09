@@ -1,4 +1,5 @@
 import Parser from "./src/parser.ts";
+import { evaluate } from "./src/runtime/interpreter.ts";
 
 const parser = new Parser();
 
@@ -12,5 +13,7 @@ while (true) {
 
 	const program = parser.produceAST(input);
 
-	console.log(program);
+	const result = evaluate(program);
+
+	console.log(result);
 }

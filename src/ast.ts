@@ -1,6 +1,7 @@
-type NodeType =
+export type NodeType =
 	| "Program"
 	| "NumericLiteral"
+	| "NullLiteral"
 	| "StringLiteral"
 	| "Identifier"
 	| "BinaryExpr"
@@ -31,7 +32,17 @@ export type Identifier = Expr & {
 	symbol: string;
 };
 
+export type StringLiteral = Expr & {
+	kind: "StringLiteral";
+	value: string;
+};
+
 export type NumericLiteral = Expr & {
 	kind: "NumericLiteral";
 	value: number;
+};
+
+export type NullLiteral = Expr & {
+	kind: "NullLiteral";
+	value: "null";
 };

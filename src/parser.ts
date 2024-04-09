@@ -5,6 +5,8 @@ import type {
 	BinaryExpr,
 	Identifier,
 	NumericLiteral,
+	NullLiteral,
+	StringLiteral,
 } from "./ast.ts";
 import { tokenize, type Token } from "./lexer.ts";
 
@@ -27,10 +29,10 @@ export default class Parser {
 		const prev = this.tokens.shift();
 		if (!prev || prev.type !== type) {
 			console.error("Parser Error:\n", err, prev, " - Expecting: ", type);
-			Deno.exit(1)
+			Deno.exit(1);
 		}
 
-		return prev
+		return prev;
 	}
 
 	public produceAST(sourceCode: string): Program {
@@ -102,11 +104,19 @@ export default class Parser {
 		switch (this.at().type) {
 			case "Identifier":
 				return { kind: "Identifier", symbol: this.eat()?.value } as Identifier;
+			case "Null":
+				this.eat(); // advance past null keyword
+				return { kind: "NullLiteral", value: "null" } as NullLiteral;
 			case "Number":
 				return {
 					kind: "NumericLiteral",
 					value: parseFloat(this.eat()?.value ?? "0"),
 				} as NumericLiteral;
+			case "String":
+				return {
+					kind: "StringLiteral",
+					value: this.eat()?.value ?? "",
+				} as StringLiteral;
 			case "OpenParen": {
 				this.eat(); // eat the opening paren
 				const value = this.parse_expr();

@@ -1,4 +1,5 @@
 export type TokenType =
+	| "Null"
 	| "Number"
 	| "String"
 	| "Identifier"
@@ -14,6 +15,7 @@ export type TokenType =
 
 const Reserved: Partial<Record<Lowercase<TokenType>, TokenType>> = {
 	let: "Let",
+	null: "Null",
 };
 
 export type Token = { value: string; type: TokenType };
@@ -69,7 +71,7 @@ export const tokenize = (sourceCode: string): Token[] => {
 			let ident = "";
 			while (src.length > 0 && isAlpha(at())) ident += eat();
 			const reserved = Reserved[ident as Lowercase<TokenType>];
-			if (reserved) pushToken(ident, reserved);
+			if (typeof reserved === "string") pushToken(ident, reserved);
 			else pushToken(ident, "Identifier");
 		} else if (isSkippable(at())) eat();
 		else {
