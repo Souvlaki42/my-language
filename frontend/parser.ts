@@ -5,7 +5,6 @@ import type {
 	BinaryExpr,
 	Identifier,
 	NumericLiteral,
-	NullLiteral,
 	StringLiteral,
 } from "./ast.ts";
 import { tokenize, type Token } from "./lexer.ts";
@@ -104,9 +103,6 @@ export default class Parser {
 		switch (this.at().type) {
 			case "Identifier":
 				return { kind: "Identifier", symbol: this.eat()?.value } as Identifier;
-			case "Null":
-				this.eat(); // advance past null keyword
-				return { kind: "NullLiteral", value: "null" } as NullLiteral;
 			case "Number":
 				return {
 					kind: "NumericLiteral",
@@ -124,6 +120,15 @@ export default class Parser {
 					"CloseParen",
 					"Unexpected token found inside parenthesised expression. Expected closing parenthesis."
 				); // eat the closing paren
+				return value;
+			}
+			case "DoubleQuote": {
+				this.eat(); // eat the double quote
+				const value = this.parse_expr();
+				this.expect(
+					"DoubleQuote",
+					"Unexpected token found inside string. Expected double quote."
+				); // eat the double quote
 				return value;
 			}
 			default:

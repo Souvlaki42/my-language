@@ -1,5 +1,4 @@
 export type TokenType =
-	| "Null"
 	| "Number"
 	| "String"
 	| "Identifier"
@@ -9,13 +8,11 @@ export type TokenType =
 	| "CloseParen"
 	| "BinaryOparator"
 	| "DoubleQuote"
-	| "SingleQuote"
 	| "Let"
 	| "EOF"; // End of File
 
 const Reserved: Partial<Record<Lowercase<TokenType>, TokenType>> = {
 	let: "Let",
-	null: "Null",
 };
 
 export type Token = { value: string; type: TokenType };
