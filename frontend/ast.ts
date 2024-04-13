@@ -1,5 +1,6 @@
 export type NodeType =
 	| "Program"
+	| "VarDeclaration"
 	| "NumericLiteral"
 	| "StringLiteral"
 	| "Identifier"
@@ -15,6 +16,13 @@ export type Stmt = {
 export type Program = Stmt & {
 	kind: "Program";
 	body: Stmt[];
+};
+
+export type VarDeclaration = Stmt & {
+	kind: "VarDeclaration";
+	constant: boolean;
+	identifier: string;
+	value?: Expr;
 };
 
 export type Expr = Stmt;

@@ -9,10 +9,13 @@ export type TokenType =
 	| "BinaryOparator"
 	| "DoubleQuote"
 	| "Let"
+	| "Const"
+	| "EOL" // End of Line (\n)
 	| "EOF"; // End of File
 
 const Reserved: Partial<Record<Lowercase<TokenType>, TokenType>> = {
 	let: "Let",
+	const: "Const",
 };
 
 export type Token = { value: string; type: TokenType };
@@ -26,7 +29,7 @@ const isInt = (str: string): boolean => {
 };
 
 const isSkippable = (str: string): boolean => {
-	return [" ", "\n", "\t"].includes(str);
+	return [" ", "\t"].includes(str);
 };
 
 const isBinaryOperator = (str: string): boolean => {
@@ -60,6 +63,7 @@ export const tokenize = (sourceCode: string): Token[] => {
 		else if (at() === ")") pushToken(eat(), "CloseParen");
 		else if (isBinaryOperator(at())) pushToken(eat(), "BinaryOparator");
 		else if (at() === "=") pushToken(eat(), "Equals");
+		else if (at() === "\n" || at() === ";") pushToken(eat(), "EOL");
 		else if (isInt(at())) {
 			let num = "";
 			while (src.length > 0 && isInt(at())) num += eat();

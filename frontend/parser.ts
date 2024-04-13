@@ -6,6 +6,7 @@ import type {
 	Identifier,
 	NumericLiteral,
 	StringLiteral,
+	VarDeclaration,
 } from "./ast.ts";
 import { tokenize, type Token } from "./lexer.ts";
 
@@ -51,7 +52,44 @@ export default class Parser {
 
 	private parse_stmt(): Stmt {
 		// skip to parse_expr
-		return this.parse_expr();
+		switch (this.at().type) {
+			case "Let":
+				return this.parse_var_declaration();
+			case "Const":
+				return this.parse_var_declaration();
+			default:
+				return this.parse_expr();
+		}
+	}
+
+	private parse_var_declaration(): Stmt {
+		const isConstant = this.eat()?.type === "Const";
+		const identifier = this.expect(
+			"Identifier",
+			"Expected identifier name following let or const keywords."
+		).value;
+
+		if (this.at().type === "EOL") {
+			this.eat();
+			if (isConstant)
+				throw "Must assign value to constant expression. No value provided.";
+			return {
+				kind: "VarDeclaration",
+				identifier,
+				constant: false,
+			} as VarDeclaration;
+		}
+
+		this.expect(
+			"Equals",
+			"Expected equals token following identifier in var declaration."
+		);
+		return {
+			kind: "VarDeclaration",
+			value: this.parse_expr(),
+			identifier,
+			constant: isConstant,
+		} as VarDeclaration;
 	}
 
 	private parse_expr(): Expr {
@@ -131,6 +169,7 @@ export default class Parser {
 				); // eat the double quote
 				return value;
 			}
+			// Todo: Handle comments
 			default:
 				console.error("Unexpected token found during parsing!", this.at());
 				Deno.exit(1);
