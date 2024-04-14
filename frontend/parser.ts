@@ -70,27 +70,21 @@ export default class Parser {
 			"Expected identifier name following let or const keywords."
 		).value;
 
-		if (this.at().type === "EOL") {
-			this.eat();
-			if (isConstant)
-				throw "Must assign value to constant expression. No value provided.";
+		if (this.eat()?.type === "Equals")
+			return {
+				kind: "VarDeclaration",
+				value: this.parse_expr(),
+				identifier,
+				constant: isConstant,
+			} as VarDeclaration;
+		else if (isConstant)
+			throw "Must assign value to constant expression. No value provided.";
+		else
 			return {
 				kind: "VarDeclaration",
 				identifier,
 				constant: false,
 			} as VarDeclaration;
-		}
-
-		this.expect(
-			"Equals",
-			"Expected equals token following identifier in var declaration."
-		);
-		return {
-			kind: "VarDeclaration",
-			value: this.parse_expr(),
-			identifier,
-			constant: isConstant,
-		} as VarDeclaration;
 	}
 
 	private parse_expr(): Expr {
@@ -138,7 +132,7 @@ export default class Parser {
 		while (
 			this.at().value === "*" ||
 			this.at().value === "/" ||
-			this.at().value === "%" // ||
+			this.at().value === "%"
 			// TODO: Integer division //
 		) {
 			const operator = this.eat()?.value;

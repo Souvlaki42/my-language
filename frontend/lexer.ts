@@ -3,14 +3,12 @@ export type TokenType =
 	| "String"
 	| "Identifier"
 	| "Equals"
-	| "Comment"
 	| "OpenParen"
 	| "CloseParen"
 	| "BinaryOparator"
 	| "DoubleQuote"
 	| "Let"
 	| "Const"
-	| "EOL" // End of Line (\n)
 	| "EOF"; // End of File
 
 const Reserved: Partial<Record<Lowercase<TokenType>, TokenType>> = {
@@ -29,7 +27,7 @@ const isInt = (str: string): boolean => {
 };
 
 const isSkippable = (str: string): boolean => {
-	return [" ", "\t"].includes(str);
+	return [" ", "\t", "\n"].includes(str);
 };
 
 const isBinaryOperator = (str: string): boolean => {
@@ -58,12 +56,10 @@ export const tokenize = (sourceCode: string): Token[] => {
 			eat();
 			let content = "";
 			while (src.length > 0 && at() !== "\n") content += eat();
-			pushToken(content, "Comment");
 		} else if (at() === "(") pushToken(eat(), "OpenParen");
 		else if (at() === ")") pushToken(eat(), "CloseParen");
 		else if (isBinaryOperator(at())) pushToken(eat(), "BinaryOparator");
 		else if (at() === "=") pushToken(eat(), "Equals");
-		else if (at() === "\n" || at() === ";") pushToken(eat(), "EOL");
 		else if (isInt(at())) {
 			let num = "";
 			while (src.length > 0 && isInt(at())) num += eat();
