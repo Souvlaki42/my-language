@@ -1,4 +1,8 @@
-import type { BinaryExpr, Identifier } from "../../frontend/ast.ts";
+import type {
+	AssignmentExpr,
+	BinaryExpr,
+	Identifier,
+} from "../../frontend/ast.ts";
 import Environment from "../environment.ts";
 import { evaluate } from "../interpreter.ts";
 import { MK_NULL, type NumberVal, type RuntimeVal } from "../values.ts";
@@ -59,4 +63,17 @@ export const eval_identifier = (
 ): RuntimeVal => {
 	const val = env.lookupVar(identifier.symbol);
 	return val;
+};
+
+export const eval_assignment_expr = (
+	node: AssignmentExpr,
+	env: Environment
+): RuntimeVal => {
+	if (node.assignee.kind !== "Identifier")
+		throw `Invalid assignee inside assignment expr: ${JSON.stringify(
+			node.assignee
+		)}`;
+
+	const varName = (node.assignee as Identifier).symbol;
+	return env.assignVar(varName, evaluate(node.value, env));
 };

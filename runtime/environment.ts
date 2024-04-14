@@ -24,9 +24,10 @@ export default class Environment {
 	}
 
 	public assignVar(varName: string, value: RuntimeVal): RuntimeVal {
+		// TODO: Check if type is the same
 		const env = this.resolve(varName);
 		if (env.constants.has(varName))
-			throw `Cannot reassign to variable ${varName}, as it was declared constant.`;
+			throw `Cannot reassign variable ${varName}, as it was declared constant.`;
 		env.variables.set(varName, value);
 		return value;
 	}

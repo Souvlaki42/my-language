@@ -5,6 +5,7 @@ export type NodeType =
 	| "StringLiteral"
 	| "Identifier"
 	| "BinaryExpr"
+	| "AssignmentExpr"
 	| "CallExpr"
 	| "UnaryExpr"
 	| "FunctionDecleration";
@@ -32,6 +33,12 @@ export type BinaryExpr = Expr & {
 	left: Expr;
 	right: Expr;
 	operator: string;
+};
+
+export type AssignmentExpr = Expr & {
+	kind: "AssignmentExpr";
+	assignee: Expr;
+	value: Expr;
 };
 
 export type Identifier = Expr & {
