@@ -3,6 +3,8 @@ export type NodeType =
 	| "VarDeclaration"
 	| "NumericLiteral"
 	| "StringLiteral"
+	| "Property"
+	| "ObjectLiteral"
 	| "Identifier"
 	| "BinaryExpr"
 	| "AssignmentExpr"
@@ -54,4 +56,15 @@ export type StringLiteral = Expr & {
 export type NumericLiteral = Expr & {
 	kind: "NumericLiteral";
 	value: number;
+};
+
+export type Property = Expr & {
+	kind: "Property";
+	key: string;
+	value?: Expr;
+};
+
+export type ObjectLiteral = Expr & {
+	kind: "ObjectLiteral";
+	properties: Property[];
 };

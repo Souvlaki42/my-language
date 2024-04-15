@@ -3,6 +3,10 @@ export type TokenType =
 	| "String"
 	| "Identifier"
 	| "Equals"
+	| "Comma"
+	| "Colon"
+	| "OpenBrace" // {
+	| "CloseBrace" // }
 	| "OpenParen"
 	| "CloseParen"
 	| "BinaryOparator"
@@ -27,7 +31,7 @@ const isInt = (str: string): boolean => {
 };
 
 const isSkippable = (str: string): boolean => {
-	return [" ", "\t", "\n"].includes(str);
+	return [" ", "\t", "\n", "\r"].includes(str);
 };
 
 const isBinaryOperator = (str: string): boolean => {
@@ -53,11 +57,13 @@ export const tokenize = (sourceCode: string): Token[] => {
 			while (src.length > 0 && at() !== '"') content += eat();
 			pushToken(content, "String");
 		} else if (at() === "#") {
-			eat();
-			let content = "";
-			while (src.length > 0 && at() !== "\n") content += eat();
+			while (src.length > 0 && at() !== "\n") eat();
 		} else if (at() === "(") pushToken(eat(), "OpenParen");
 		else if (at() === ")") pushToken(eat(), "CloseParen");
+		else if (at() === "{") pushToken(eat(), "OpenBrace");
+		else if (at() === "}") pushToken(eat(), "CloseBrace");
+		else if (at() === ",") pushToken(eat(), "Comma");
+		else if (at() === ":") pushToken(eat(), "Colon");
 		else if (isBinaryOperator(at())) pushToken(eat(), "BinaryOparator");
 		else if (at() === "=") pushToken(eat(), "Equals");
 		else if (isInt(at())) {

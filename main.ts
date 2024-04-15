@@ -1,20 +1,13 @@
 import Parser from "./frontend/parser.ts";
-import Environment from "./runtime/environment.ts";
+import { createGlobalEnv } from "./runtime/environment.ts";
 import { evaluate } from "./runtime/interpreter.ts";
-import { MK_NULL, MK_BOOL, MK_NUMBER } from "./runtime/values.ts";
 
 // Getting filename
 const file = Deno.args[0];
 
 // Combine frontend and runtime
 const parser = new Parser();
-const env = new Environment();
-
-// Create default global variables
-env.declareVar("true", MK_BOOL(true), true);
-env.declareVar("false", MK_BOOL(false), true);
-env.declareVar("null", MK_NULL(), true);
-env.declareVar("pi", MK_NUMBER(3.141592653589793), true);
+const env = createGlobalEnv();
 
 if (!file) {
 	console.log("Repl");

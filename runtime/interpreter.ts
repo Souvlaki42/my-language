@@ -8,6 +8,7 @@ import type {
 	StringLiteral,
 	VarDeclaration,
 	AssignmentExpr,
+	ObjectLiteral,
 } from "../frontend/ast.ts";
 import Environment from "./environment.ts";
 import { eval_program, eval_var_declaration } from "./eval/statements.ts";
@@ -15,6 +16,7 @@ import {
 	eval_binary_expr,
 	eval_assignment_expr,
 	eval_identifier,
+	eval_object_expr,
 } from "./eval/expressions.ts";
 
 export const evaluate = (astNode: Stmt, env: Environment): RuntimeVal => {
@@ -31,6 +33,8 @@ export const evaluate = (astNode: Stmt, env: Environment): RuntimeVal => {
 			} as StringVal;
 		case "Identifier":
 			return eval_identifier(astNode as Identifier, env);
+		case "ObjectLiteral":
+			return eval_object_expr(astNode as ObjectLiteral, env);
 		case "BinaryExpr":
 			return eval_binary_expr(astNode as BinaryExpr, env);
 		case "AssignmentExpr":

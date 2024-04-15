@@ -1,4 +1,4 @@
-export type ValueType = "null" | "number" | "string" | "boolean";
+export type ValueType = "null" | "number" | "string" | "boolean" | "object";
 
 export type RuntimeVal = {
 	type: ValueType;
@@ -22,6 +22,11 @@ export type NumberVal = RuntimeVal & {
 export type StringVal = RuntimeVal & {
 	type: "string";
 	value: string;
+};
+
+export type ObjectVal = RuntimeVal & {
+	type: "object";
+	properties: Map<string, RuntimeVal>;
 };
 
 export const MK_NUMBER = (n = 0): NumberVal => {

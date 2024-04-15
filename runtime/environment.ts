@@ -1,4 +1,14 @@
-import type { RuntimeVal } from "./values.ts";
+import { MK_BOOL, MK_NULL, MK_NUMBER, type RuntimeVal } from "./values.ts";
+
+export const createGlobalEnv = (): Environment => {
+	const env = new Environment();
+	// Create default global variables
+	env.declareVar("true", MK_BOOL(true), true);
+	env.declareVar("false", MK_BOOL(false), true);
+	env.declareVar("null", MK_NULL(), true);
+	env.declareVar("pi", MK_NUMBER(3.141592653589793), true);
+	return env;
+};
 
 export default class Environment {
 	private parent?: Environment;

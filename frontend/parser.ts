@@ -1,13 +1,15 @@
-import type {
-	Stmt,
-	Program,
-	Expr,
-	BinaryExpr,
-	Identifier,
-	NumericLiteral,
-	StringLiteral,
-	VarDeclaration,
-	AssignmentExpr,
+import {
+	type Stmt,
+	type Program,
+	type Expr,
+	type BinaryExpr,
+	type Identifier,
+	type NumericLiteral,
+	type StringLiteral,
+	type VarDeclaration,
+	type AssignmentExpr,
+	Property,
+	ObjectLiteral,
 } from "./ast.ts";
 import { tokenize, type Token } from "./lexer.ts";
 
@@ -92,7 +94,7 @@ export default class Parser {
 	}
 
 	private parse_assignment_expr(): Expr {
-		const left = this.parse_additive_expr(); // TODO: switch with objectExpr
+		const left = this.parse_object_expr();
 
 		if (this.at().type === "Equals") {
 			this.eat(); // advance past equals
@@ -105,6 +107,46 @@ export default class Parser {
 		}
 
 		return left;
+	}
+
+	private parse_object_expr(): Expr {
+		if (this.at().type !== "OpenBrace") return this.parse_additive_expr();
+
+		this.eat(); // advance open brace
+		const properties = new Array<Property>();
+
+		while (this.not_eof() && this.at().type !== "CloseBrace") {
+			const key = this.expect(
+				"Identifier",
+				"Object literal key expected"
+			).value;
+
+			// Allows shorthand key: pair -> { key, }
+			if (this.at().type === "Comma") {
+				this.eat(); // advance past comma
+				properties.push({ key, kind: "Property" });
+				continue;
+			} // Allows shorthand key: pair -> { key }
+			else if (this.at().type === "CloseBrace") {
+				properties.push({ key, kind: "Property" });
+				continue;
+			}
+
+			// { key: val }
+			this.expect("Colon", "Missing colon following identifier in ObjectExpr");
+			const value = this.parse_expr();
+			properties.push({ kind: "Property", key, value });
+
+			if (this.at().type !== "CloseBrace")
+				this.expect(
+					"Comma",
+					"Expected comma or closing bracket following property."
+				);
+		}
+
+		this.expect("CloseBrace", "Object literal missing closing brace.");
+
+		return { kind: "ObjectLiteral", properties } as ObjectLiteral;
 	}
 
 	private parse_additive_expr(): Expr {
